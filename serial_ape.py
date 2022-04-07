@@ -3,7 +3,11 @@ import serial
 import time
 from itertools import chain, product
      
-
+# this makes a list of usable characters
+# set a to true to get all alphatet characters a-z lower and capital
+# set n to true to get all numerical symbols 1-9
+# set s to true to get all other non alpha-numerical characters
+# you can get all by setting all to true
 def make_alphabet(a=True, n=True, s=True):
   alphabet = """abcdefghijklmnopqrstuvwxyz"""
   cap = alphabet.upper()
@@ -14,7 +18,6 @@ def make_alphabet(a=True, n=True, s=True):
   if a:
     for char in alphabet:
       characters.append(char)
-
     for char in cap:
       characters.append(char)
 
@@ -28,7 +31,9 @@ def make_alphabet(a=True, n=True, s=True):
 
   return characters
 
- 
+
+# this function generates a list of combinations of the wordlist
+# it will start by generating combos of length minlen up to maxlen
 def bruteforce(charset, maxlength, minlen):
     return (''.join(candidate)
         for candidate in chain.from_iterable(product(charset, repeat=i)
@@ -81,7 +86,7 @@ def main(ser, char_list, maxlen, minlen):
 
 
 # This takes a wordlist and runs through it
-def word_brute(wordlist):
+def word_brute(ser, wordlist):
   attempts = 0
   with open(wordlist, 'r') as f:
     for line in f:
@@ -98,6 +103,25 @@ def word_brute(wordlist):
 
   return "NOTHING FOUND", attempts
 
+
+def pass_check(ser, pass_list):
+  good_words = []
+  for p in pass_list:
+    re = ser.readline().decode('utf-8').strip()
+    if re != 'Please enter the password:':
+      ser.write(b'\n')
+      continue
+
+    print(f"Checking '{p}' ...")
+    ser.write(bytes(p+'\r', 'utf-8')
+
+    re = ser.readline().decode('utf-8').strip()
+    print(re)
+    if re == 'SUCCESS!':
+      good_words.append(p)
+    print('------------------')
+
+  return good_words
 
 # ---------- RUNNING --------------------
 if __name__ == "__main__":
@@ -128,8 +152,15 @@ if __name__ == "__main__":
       if password != -1:
         password_list.append(password)
 
-
-  print(f'Passwords: {password_list}')
+  print(f'Found Passwords: {password_list}')
   print(f'Took: {time.time()-s_time} seconds to complete')
   print(f'Took {attempts} Attempts')
+
+  print("Checking Passwords...")
+  good = pass_check(ser, password_list)
+  
+  print("\n\nGOOD PASSWORDS:")
+  for g in good:
+    print(g)
+    
 
