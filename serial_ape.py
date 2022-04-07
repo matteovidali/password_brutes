@@ -42,17 +42,17 @@ def bruteforce(charset, maxlength, minlen):
 
 # this is the brute forcing algorithm
 def force_crack(ser, char_list, maxlen, minlen):
+
   # keep track of attempts
   attempt = 0
-
+  start_time = time.time()
+  total_time = 0
   # Create a list of passwords
   passes = list(bruteforce(char_list, maxlen, minlen))
-
   succ_passwords = []
 
   # Try each password in the list
   for s in passes:
-    ser.readline()
     # this prints a status update every 1000 attempts
     if attempt%1000 == 0:
       print(attempt)
@@ -64,9 +64,11 @@ def force_crack(ser, char_list, maxlen, minlen):
 
     # This continues looping if its incorrect
     if re  == 'Incorrect password!': #or re == 'Please enter the password:':
+      ser.readline()
       continue
 
     # otherwise we say the password is a sucess!
+    total_time += time.time() - start_time
     print(f"Found password!: '{s}'")
     print(re)
 
@@ -75,13 +77,17 @@ def force_crack(ser, char_list, maxlen, minlen):
     cont = input("Do you want to keep finding passwords? y/n: ")
     while True:
       if cont == "y":
+        start_time = time.time()
+        ser.readline()
         break
       if cont == "n":
-        return succ_passwords, attempt
+        return succ_passwords, attempt, total_time 
       cont = input("Please enter 'y' or 'n': ")
+
+  total_time += time.time() - start_time
   
   # if we found nothing return -1
-  return [-1], attempt
+  return [-1], attempt, total_time
 
 
 
@@ -129,7 +135,7 @@ def main():
   print("STARTING")
 
   # take a time stamp and setup trackers
-  s_time = time.time()
+  time = 0
   attempts = 0
   password_list = []
 
@@ -141,19 +147,36 @@ def main():
   max_char = int(input("Enter maximum number of letters per password: "))
 
   print(f"Starting brute with min_len = {min_char} & max_len = {max_char}")
+  print("CLEARING BUFFER...")
+  while True:
+    re = ser.readline().decode('utf-8').strip()
+    print(re)
+    if re == 'Please enter the password:':
+      break
+    elif re == 'Incorrect password!':
+      continue
+
+    ser.write(b'a\n')
 
   # run the alogorithm
-  for q in range(min_char, max_char):
+  for q in range(min_char, max_char+1):
     #p, attempts = word_brute() 
+    print(f'Total time so far: {time}s')
     print(f'MOVING TO MAX OF {q} CHARACTERS')
-    p, at = force_crack(ser, x, q,q)
+    p, at, round_time = force_crack(ser, x, q,q)
     attempts += at
+    time += round_time
+
     for password in p:
       if password != -1:
         password_list.append(password)
+      else:
+        break
+    if -1 in p:
+      break
 
   print(f'Found Passwords: {password_list}')
-  print(f'Took: {time.time()-s_time} seconds to complete')
+  print(f'Took: {time}seconds to complete')
   print(f'Took {attempts} Attempts')
 
   print("Checking Passwords...")
