@@ -3,7 +3,6 @@ import serial
 import time
 from itertools import chain, product
      
-ser = serial.Serial('/dev/ttyACM2', 38400)
 
 def make_alphabet(a=True, n=True, s=True):
   alphabet = """abcdefghijklmnopqrstuvwxyz"""
@@ -37,7 +36,7 @@ def bruteforce(charset, maxlength, minlen):
 
 
 # this is the brute forcing algorithm
-def main(char_list, maxlen, minlen):
+def main(ser, char_list, maxlen, minlen):
   # keep track of attempts
   attempt = 0
 
@@ -48,17 +47,18 @@ def main(char_list, maxlen, minlen):
 
   # Try each password in the list
   for s in passes:
+    ser.readline()
     # this prints a status update every 1000 attempts
     if attempt%1000 == 0:
       print(attempt)
 
     # this checks the password and gets a response
-    ser.write(bytes(s+'\n', 'utf-8'))
+    ser.write(bytes(s+'\r', 'utf-8'))
     re = ser.readline().decode('utf-8').strip()
     attempt += 1
 
     # This continues looping if its incorrect
-    if re  == 'Incorrect password!' or re == 'Please enter the password:':
+    if re  == 'Incorrect password!': #or re == 'Please enter the password:':
       continue
 
     # otherwise we say the password is a sucess!
@@ -88,7 +88,7 @@ def word_brute(wordlist):
       attempts += 1
       print(attempts)
       print(line)
-      ser.write(bytes(line+'\n', 'utf-8'))
+      ser.write(bytes(line+'\r', 'utf-8'))
       if ser.readline().decode('utf-8') == 'Incorrect password!' or 'Please enter the password:':
         continue
       else:
@@ -101,8 +101,10 @@ def word_brute(wordlist):
 
 # ---------- RUNNING --------------------
 if __name__ == "__main__":
-  
+
+  ser = serial.Serial('/dev/ttyACM2', 38400)
   print("STARTING")
+
   # take a time stamp
   s_time = time.time()
   attempts = 0
@@ -120,7 +122,7 @@ if __name__ == "__main__":
   for q in range(min_char, max_char):
     #p, attempts = word_brute() 
     print(f'MOVING TO MAX OF {q} CHARACTERS')
-    p, at = main(x, q,q)
+    p, at = main(ser, x, q,q)
     attempts += at
     for password in p:
       if password != -1:
