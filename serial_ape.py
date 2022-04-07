@@ -81,7 +81,7 @@ def force_crack(ser, char_list, maxlen, minlen):
       cont = input("Please enter 'y' or 'n': ")
   
   # if we found nothing return -1
-  return -1, attempt
+  return [-1], attempt
 
 
 
