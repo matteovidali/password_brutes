@@ -114,7 +114,7 @@ def pass_check(ser, pass_list):
       continue
 
     print(f"Checking '{p}' ...")
-    ser.write(bytes(p+'\r', 'utf-8')
+    ser.write(bytes(p+'\r', 'utf-8'))
 
     re = ser.readline().decode('utf-8').strip()
     print(re)
