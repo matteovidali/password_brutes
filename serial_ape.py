@@ -41,7 +41,7 @@ def bruteforce(charset, maxlength, minlen):
 
 
 # this is the brute forcing algorithm
-def main(ser, char_list, maxlen, minlen):
+def force_crack(ser, char_list, maxlen, minlen):
   # keep track of attempts
   attempt = 0
 
@@ -72,7 +72,7 @@ def main(ser, char_list, maxlen, minlen):
 
     succ_passwords.append(s)
     # checking if we should continue searching
-    cont = input("Oo you want to keep finding passwords? y/n: ")
+    cont = input("Do you want to keep finding passwords? y/n: ")
     while True:
       if cont == "y":
         break
@@ -103,7 +103,8 @@ def word_brute(ser, wordlist):
 
   return "NOTHING FOUND", attempts
 
-
+# Checks passwords more manually, takes a good password list and carefully
+# listents for sucess responses
 def pass_check(ser, pass_list):
   good_words = []
   for p in pass_list:
@@ -123,17 +124,15 @@ def pass_check(ser, pass_list):
 
   return good_words
 
-# ---------- RUNNING --------------------
-if __name__ == "__main__":
-
+def main():
   ser = serial.Serial('/dev/ttyACM2', 38400)
   print("STARTING")
 
-  # take a time stamp
+  # take a time stamp and setup trackers
   s_time = time.time()
   attempts = 0
-
   password_list = []
+
   # generate list of characters
   x = make_alphabet() 
 
@@ -142,11 +141,12 @@ if __name__ == "__main__":
   max_char = int(input("Enter maximum number of letters per password: "))
 
   print(f"Starting brute with min_len = {min_char} & max_len = {max_char}")
+
   # run the alogorithm
   for q in range(min_char, max_char):
     #p, attempts = word_brute() 
     print(f'MOVING TO MAX OF {q} CHARACTERS')
-    p, at = main(ser, x, q,q)
+    p, at = force_crack(ser, x, q,q)
     attempts += at
     for password in p:
       if password != -1:
@@ -164,3 +164,6 @@ if __name__ == "__main__":
     print(g)
     
 
+# ---------- RUNNING --------------------
+if __name__ == "__main__":
+  main()
